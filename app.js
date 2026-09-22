@@ -31,7 +31,7 @@ shape.quadraticCurveTo(-width / 2, -height / 2, -width / 2 + radius, -height / 2
 
 const geometry = new THREE.ShapeGeometry(shape);
 
-// Normalize UV coordinates for geometry
+// Normalize UV coordinates for geometry mapping
 const pos = geometry.attributes.position;
 const uvs = new Float32Array(pos.count * 2);
 for (let i = 0; i < pos.count; i++) {
@@ -40,7 +40,7 @@ for (let i = 0; i < pos.count; i++) {
 }
 geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-// 3. Dynamic Canvas Generation with Attached iPhone Wallpaper
+// 3. Dynamic Canvas Generation using "iPhone 15 Wallpaper.png"
 const canvas = document.createElement('canvas');
 canvas.width = 1024;
 canvas.height = 2048;
@@ -51,18 +51,18 @@ texture.generateMipmaps = true;
 texture.minFilter = THREE.LinearMipmapLinearFilter;
 texture.magFilter = THREE.LinearFilter;
 
-// Load provided wallpaper image
+// Load the updated wallpaper image filename
 const wallpaperImg = new Image();
-wallpaperImg.src = 'iPhone 15 Wallpaper 2 YTECHB.jpg';
+wallpaperImg.src = 'iPhone 15 Wallpaper.png';
 wallpaperImg.onload = () => {
   renderScreenContent();
 };
 
 function renderScreenContent() {
-  // Draw wallpaper image full-cover
+  // Render wallpaper exclusively across phone screen canvas
   ctx.drawImage(wallpaperImg, 0, 0, canvas.width, canvas.height);
 
-  // App Grid
+  // App Grid Overlay
   const appList = [
     { name: 'About', color: 'rgba(59, 130, 246, 0.85)', icon: 'i' },
     { name: 'Education', color: 'rgba(16, 185, 129, 0.85)', icon: 'E' },
@@ -110,7 +110,7 @@ const material = new THREE.MeshBasicMaterial({
 const phone = new THREE.Mesh(geometry, material);
 scene.add(phone);
 
-// 4. Full-Screen Pointer & Flip Control Logic
+// 4. Viewport-Wide Click & Flip Handler
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
@@ -129,7 +129,7 @@ function handlePointerDown(event) {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(phone);
 
-  // Check direct click on GitHub icon region
+  // Check direct interaction on GitHub app icon
   if (intersects.length > 0 && intersects[0].uv) {
     const uv = intersects[0].uv;
 
@@ -144,7 +144,7 @@ function handlePointerDown(event) {
     }
   }
 
-  // Trigger 180-degree flip animation on screen click anywhere else
+  // Trigger 180-degree rotation when clicking anywhere else on the screen
   targetRotationY += Math.PI;
   isFlipping = true;
 }
@@ -152,7 +152,7 @@ function handlePointerDown(event) {
 window.addEventListener('click', handlePointerDown);
 window.addEventListener('touchstart', handlePointerDown);
 
-// 5. Responsive Resize
+// 5. Responsive Resizing
 window.addEventListener('resize', () => {
   const newAspect = window.innerWidth / window.innerHeight;
   camera.aspect = newAspect;
@@ -164,7 +164,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// 6. Animation Loop (Smooth Fast Flip Interpolation)
+// 6. Fast Flip Animation Loop
 function animate() {
   requestAnimationFrame(animate);
 
