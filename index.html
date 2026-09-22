@@ -20,7 +20,7 @@
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Inter, Helvetica, Arial, sans-serif;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     user-select: none;
@@ -79,16 +79,25 @@
   /* ============ FRONT : SCREEN ============ */
   .screen {
     width: 100%; height: 100%; border-radius: 44px; overflow: hidden; position: relative;
-    background: #121216 url('iPhone 15 Wallpaper.png') center/cover no-repeat;
+    background: #1c222b linear-gradient(180deg, #2b3545 0%, #161b22 100%);
     display: flex; flex-direction: column; justify-content: space-between;
   }
+  
+  /* High quality custom wallpaper pattern overlay */
+  .screen::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(120, 160, 220, 0.25), transparent 70%),
+                radial-gradient(circle at 20% 80%, rgba(80, 120, 180, 0.2), transparent 50%);
+    pointer-events: none; z-index: 1;
+  }
+
   .island {
     position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
     width: 92px; height: 26px; background: #000; border-radius: 20px; z-index: 5;
   }
   .status {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 15px 24px 4px; font-size: 12px; font-weight: 700; letter-spacing: .3px;
+    padding: 14px 22px 0; font-size: 12px; font-weight: 700; letter-spacing: .3px;
     color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); z-index: 4;
   }
   .status .right { display: flex; align-items: center; gap: 5px; }
@@ -103,85 +112,90 @@
 
   /* ---- home grid ---- */
   .home {
-    padding: 14px 16px 0; display: grid;
-    grid-template-columns: repeat(4, 1fr); gap: 18px 11px;
+    padding: 12px 16px 0; display: grid;
+    grid-template-columns: repeat(4, 1fr); gap: 14px 10px;
     align-content: start; z-index: 4;
   }
 
-  /* App tile wrappers with space for labels to prevent overlap */
+  /* App tile wrappers with structured height to prevent label-icon collision */
   .app-item {
-    display: flex; flex-direction: column; align-items: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
     text-decoration: none; color: inherit; cursor: pointer;
+    height: 72px;
   }
   .tile {
-    width: 52px; height: 52px; border-radius: 14px; position: relative;
+    width: 50px; height: 50px; border-radius: 13px; position: relative;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 16px rgba(0,0,0,.45); transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35); transition: transform .2s, box-shadow .2s;
+    flex-shrink: 0;
   }
-  .app-item:hover .tile { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,.6); }
+  .app-item:hover .tile { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.5); }
   .tile svg { width: 28px; height: 28px; fill: currentColor; }
+  
   .lbl {
-    margin-top: 5px; font-size: 9px; font-weight: 600; color: #ffffff;
-    letter-spacing: .2px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); text-align: center;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;
+    margin-top: 4px; font-size: 9.5px; font-weight: 500; color: #ffffff;
+    letter-spacing: .1px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 58px;
+    line-height: 1.1;
   }
 
   /* Pixel Widget */
   .pixel-w {
-    grid-column: span 4; height: 60px; background: rgba(24, 26, 31, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px);
-    border-radius: 18px; padding: 9px; display: grid; gap: 2px;
-    grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(8, 1fr);
-    box-shadow: 0 6px 16px rgba(0,0,0,.3);
+    grid-column: span 4; height: 54px; background: rgba(18, 20, 26, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px);
+    border-radius: 16px; padding: 8px; display: grid; gap: 2px;
+    grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(7, 1fr);
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
   }
-  .pixel-w span { border-radius: 1.5px; background: #142019; }
+  .pixel-w span { border-radius: 1px; background: #122218; }
 
   /* Cal.com Widget */
-  .cal-wrap { grid-column: span 2; }
+  .cal-wrap { grid-column: span 2; height: 114px; }
   .cal {
-    height: 122px; background: #ffffff; color: #111;
-    border-radius: 18px; padding: 11px 12px; display: flex; flex-direction: column;
-    box-shadow: 0 6px 16px rgba(0,0,0,.45);
+    width: 100%; height: 114px; background: #ffffff; color: #111;
+    border-radius: 18px; padding: 10px 11px; display: flex; flex-direction: column;
+    box-shadow: 0 6px 16px rgba(0,0,0,.4);
   }
   .cal .top { display: flex; justify-content: space-between; align-items: center; font-size: 7.5px; font-weight: 800; letter-spacing: .2px; }
   .cal .avail { color: #0aa06e; }
-  .cal h3 { font-size: 17px; font-weight: 800; margin-top: 4px; letter-spacing: -.4px; }
-  .cal p { font-size: 8.5px; color: #6b6b72; margin-top: 1px; font-weight: 600; }
+  .cal h3 { font-size: 16px; font-weight: 800; margin-top: 3px; letter-spacing: -.4px; }
+  .cal p { font-size: 8.5px; color: #6b6b72; margin-top: 0px; font-weight: 600; }
   .cal .days { margin-top: auto; display: flex; gap: 4px; }
-  .cal .d { flex: 1; background: #f2f2f4; border-radius: 7px; text-align: center; padding: 4px 0; }
+  .cal .d { flex: 1; background: #f2f2f4; border-radius: 6px; text-align: center; padding: 3px 0; }
   .cal .d b { display: block; font-size: 8px; }
   .cal .d span { font-size: 6px; color: #8a8a93; font-weight: 700; }
 
-  /* App tile styles with sharp, authentic gradients and SVG sizing */
-  .a-about { background: linear-gradient(180deg, #3d7bff, #1b4fd6); color: #fff; }
-  .a-edu { background: linear-gradient(180deg, #8a5bff, #5b2fd6); color: #fff; }
-  .a-proj { background: linear-gradient(180deg, #20d3c2, #0f8fd6); color: #fff; }
+  /* App tile styles with sharp gradient and accurate SVG placement */
+  .a-about { background: linear-gradient(180deg, #3a82f6, #1d4ed8); color: #fff; }
+  .a-edu { background: linear-gradient(180deg, #a855f7, #6b21a8); color: #fff; }
+  .a-proj { background: linear-gradient(180deg, #06b6d4, #0284c7); color: #fff; }
   .a-linkedin { background: #0077b5; color: #fff; }
-  .a-github { background: #24292e; color: #fff; border: 1px solid #3a3f44; }
-  .a-notes { background: linear-gradient(180deg, #ffffff 0 28%, #ffd84d 28% 100%); color: #333; }
-  .a-settings { background: linear-gradient(180deg, #c9ccd2, #8d9199); color: #1c1e21; }
-  .a-x { background: #000000; color: #fff; border: 1px solid #232329; }
-  .a-store { background: linear-gradient(180deg, #31c4ff, #0a72ff); color: #fff; }
-  .a-msg { background: linear-gradient(180deg, #5ef07a, #0fbf32); color: #fff; }
-  .a-files { background: linear-gradient(180deg, #63c6ff, #1e83f5); color: #fff; }
-  .photos { background: #fff; position: relative; }
+  .a-github { background: #171515; color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+  .a-notes { background: linear-gradient(180deg, #fef08a 0 32%, #eab308 32% 100%); color: #333; }
+  .a-settings { background: linear-gradient(180deg, #9ca3af, #4b5563); color: #fff; }
+  .a-x { background: #000000; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+  .a-store { background: linear-gradient(180deg, #38bdf8, #0284c7); color: #fff; }
+  .a-msg { background: linear-gradient(180deg, #4ade80, #16a34a); color: #fff; }
+  .a-files { background: linear-gradient(180deg, #38bdf8, #2563eb); color: #fff; }
+  
+  .photos { background: #ffffff; position: relative; }
   .photos::before {
     content: ""; position: absolute; inset: 7px; border-radius: 50%;
-    background: conic-gradient(#ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #af52de, #ff2d55, #ff3b30);
-    filter: saturate(1.1);
+    background: conic-gradient(#ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444);
   }
   .photos::after {
-    content: ""; position: absolute; inset: 15px; border-radius: 50%; background: #fff;
+    content: ""; position: absolute; inset: 15px; border-radius: 50%; background: #ffffff;
   }
 
   .search {
-    margin: 4px auto 8px; width: 150px; height: 22px; border-radius: 14px; background: rgba(0,0,0,.35);
-    backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
-    gap: 5px; font-size: 9.5px; color: #ffffff; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5); z-index: 4;
+    margin: 4px auto 6px; width: 140px; height: 22px; border-radius: 12px; background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+    gap: 5px; font-size: 9.5px; color: #ffffff; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); z-index: 4;
   }
   .dock {
-    margin: 0 12px 16px; height: 68px; border-radius: 24px; background: rgba(255,255,255,.25);
-    backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: space-around; padding: 0 10px; z-index: 4;
+    margin: 0 10px 14px; height: 64px; border-radius: 22px; background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: space-around; padding: 0 8px; z-index: 4;
   }
 
   /* ============ BACK FACE ============ */
@@ -320,26 +334,23 @@
               </div>
             </div>
 
-            <!-- section apps -->
+            <!-- section apps (labels removed as requested) -->
             <div class="app-item" data-open="about">
               <div class="tile a-about" title="About">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
               </div>
-              <span class="lbl">About</span>
             </div>
 
             <div class="app-item" data-open="education">
               <div class="tile a-edu" title="Education">
                 <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
               </div>
-              <span class="lbl">Education</span>
             </div>
 
             <div class="app-item" data-open="projects">
               <div class="tile a-proj" title="Projects">
                 <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
               </div>
-              <span class="lbl">Projects</span>
             </div>
 
             <a class="app-item" href="https://linkedin.com" target="_blank" rel="noopener">
@@ -484,7 +495,7 @@
   /* ---------- pixel widget ---------- */
   (function(){
     const w = document.getElementById('pixelW');
-    const cells = 20*8;
+    const cells = 20*7;
     for(let i=0;i<cells;i++){
       const s=document.createElement('span');
       const r=Math.random();
@@ -498,7 +509,7 @@
       for(let i=0;i<8;i++){
         const k=kids[Math.floor(Math.random()*kids.length)];
         const r=Math.random();
-        k.style.background = r>0.82?'#3ddc84': r>0.62?'#1f7a45': r>0.45?'#123322':'#142019';
+        k.style.background = r>0.82?'#3ddc84': r>0.62?'#1f7a45': r>0.45?'#123322':'#122218';
       }
     },700);
   })();
