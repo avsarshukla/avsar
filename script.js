@@ -13,7 +13,7 @@ renderer.setPixelRatio(dpr);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// 2. Base Phone Geometry Setup (No Width/Depth, No Physical Buttons)
+// 2. Base Phone Geometry Setup
 const width = 2.5;
 const height = 5.2;
 const radius = 0.35;
@@ -40,7 +40,7 @@ for (let i = 0; i < pos.count; i++) {
 }
 geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-// 3. Dynamic Canvas Generation using "iPhone 15 Wallpaper.png"
+// 3. Dynamic Canvas Generation
 const canvas = document.createElement('canvas');
 canvas.width = 1024;
 canvas.height = 2048;
@@ -51,7 +51,6 @@ texture.generateMipmaps = true;
 texture.minFilter = THREE.LinearMipmapLinearFilter;
 texture.magFilter = THREE.LinearFilter;
 
-// Load the updated wallpaper image filename
 const wallpaperImg = new Image();
 wallpaperImg.src = 'iPhone 15 Wallpaper.png';
 wallpaperImg.onload = () => {
@@ -59,15 +58,11 @@ wallpaperImg.onload = () => {
 };
 
 function renderScreenContent() {
-  // Render wallpaper exclusively across phone screen canvas
   ctx.drawImage(wallpaperImg, 0, 0, canvas.width, canvas.height);
 
-  // App Grid Overlay
+  // App Grid Overlay — About / Education / Projects removed
   const appList = [
-    { name: 'About', color: 'rgba(59, 130, 246, 0.85)', icon: 'i' },
-    { name: 'Education', color: 'rgba(16, 185, 129, 0.85)', icon: 'E' },
-    { name: 'Projects', color: 'rgba(245, 158, 11, 0.85)', icon: 'P' },
-    { name: 'GitHub', color: 'rgba(30, 41, 59, 0.85)', icon: 'GH' },
+    { name: 'GitHub',   color: 'rgba(30, 41, 59, 0.85)',   icon: 'GH' },
     { name: 'LinkedIn', color: 'rgba(10, 102, 194, 0.85)', icon: 'in' }
   ];
 
@@ -129,14 +124,14 @@ function handlePointerDown(event) {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(phone);
 
-  // Check direct interaction on GitHub app icon
+  // GitHub tile is now index 0: x=120..280, y=480..640 in canvas space
   if (intersects.length > 0 && intersects[0].uv) {
     const uv = intersects[0].uv;
 
-    const ghXMin = 400 / canvas.width;
-    const ghXMax = 560 / canvas.width;
-    const ghYMin = 1308 / canvas.height;
-    const ghYMax = 1468 / canvas.height;
+    const ghXMin = 120 / canvas.width;
+    const ghXMax = 280 / canvas.width;
+    const ghYMin = 480 / canvas.height;
+    const ghYMax = 640 / canvas.height;
 
     if (uv.x >= ghXMin && uv.x <= ghXMax && uv.y >= ghYMin && uv.y <= ghYMax) {
       window.open('https://github.com/avsarshukla', '_blank', 'noopener,noreferrer');
@@ -144,7 +139,7 @@ function handlePointerDown(event) {
     }
   }
 
-  // Trigger 180-degree rotation when clicking anywhere else on the screen
+  // Flip the phone when clicking anywhere else
   targetRotationY += Math.PI;
   isFlipping = true;
 }
@@ -164,7 +159,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// 6. Fast Flip Animation Loop
+// 6. Flip Animation Loop
 function animate() {
   requestAnimationFrame(animate);
 
