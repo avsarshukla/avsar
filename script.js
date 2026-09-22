@@ -13,7 +13,7 @@ renderer.setPixelRatio(dpr);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// 2. Base Phone Geometry Setup
+// 2. Phone Geometry
 const width = 2.5;
 const height = 5.2;
 const radius = 0.35;
@@ -31,7 +31,7 @@ shape.quadraticCurveTo(-width / 2, -height / 2, -width / 2 + radius, -height / 2
 
 const geometry = new THREE.ShapeGeometry(shape);
 
-// Normalize UV coordinates for geometry mapping
+// Normalize UVs so the texture maps 1:1 across the phone face
 const pos = geometry.attributes.position;
 const uvs = new Float32Array(pos.count * 2);
 for (let i = 0; i < pos.count; i++) {
@@ -40,106 +40,30 @@ for (let i = 0; i < pos.count; i++) {
 }
 geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-// 3. Dynamic Canvas Generation
-const canvas = document.createElement('canvas');
-canvas.width = 1024;
-canvas.height = 2048;
-const ctx = canvas.getContext('2d');
-
-const texture = new THREE.CanvasTexture(canvas);
-texture.generateMipmaps = true;
-texture.minFilter = THREE.LinearMipmapLinearFilter;
-texture.magFilter = THREE.LinearFilter;
-
-const wallpaperImg = new Image();
-wallpaperImg.src = 'iPhone 15 Wallpaper.png';
-wallpaperImg.onload = () => {
-  renderScreenContent();
-};
-
-function renderScreenContent() {
-  ctx.drawImage(wallpaperImg, 0, 0, canvas.width, canvas.height);
-
-  // App Grid Overlay — About / Education / Projects removed
-  const appList = [
-    { name: 'GitHub',   color: 'rgba(30, 41, 59, 0.85)',   icon: 'GH' },
-    { name: 'LinkedIn', color: 'rgba(10, 102, 194, 0.85)', icon: 'in' }
-  ];
-
-  const appSize = 160;
-  const startX = 120;
-  const startY = 480;
-  const colGap = 280;
-  const rowGap = 280;
-
-  appList.forEach((app, index) => {
-    const col = index % 3;
-    const row = Math.floor(index / 3);
-    const x = startX + col * colGap;
-    const y = startY + row * rowGap;
-
-    ctx.fillStyle = app.color;
-    ctx.beginPath();
-    ctx.roundRect(x, y, appSize, appSize, 36);
-    ctx.fill();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 64px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(app.icon, x + appSize / 2, y + appSize / 2);
-
-    ctx.font = '500 36px sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(app.name, x + appSize / 2, y + appSize + 48);
-  });
-
-  texture.needsUpdate = true;
-}
+// 3. Load the PNG wallpaper directly as the texture
+const loader = new THREE.TextureLoader();
+const wallpaper = loader.load('iPhone 15 Wallpaper.png', (tex) => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  tex.needsUpdate = true;
+});
 
 const material = new THREE.MeshBasicMaterial({
-  map: texture,
+  map: wallpaper,
   side: THREE.DoubleSide
 });
 
 const phone = new THREE.Mesh(geometry, material);
 scene.add(phone);
 
-// 4. Viewport-Wide Click & Flip Handler
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
+// 4. Click anywhere → flip 180°
 let targetRotationY = 0;
 let isFlipping = false;
 
-function handlePointerDown(event) {
-  const x = event.clientX || (event.touches && event.touches[0].clientX);
-  const y = event.clientY || (event.touches && event.touches[0].clientY);
-
-  if (x === undefined || y === undefined) return;
-
-  mouse.x = (x / window.innerWidth) * 2 - 1;
-  mouse.y = -(y / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(phone);
-
-  // GitHub tile is now index 0: x=120..280, y=480..640 in canvas space
-  if (intersects.length > 0 && intersects[0].uv) {
-    const uv = intersects[0].uv;
-
-    const ghXMin = 120 / canvas.width;
-    const ghXMax = 280 / canvas.width;
-    const ghYMin = 480 / canvas.height;
-    const ghYMax = 640 / canvas.height;
-
-    if (uv.x >= ghXMin && uv.x <= ghXMax && uv.y >= ghYMin && uv.y <= ghYMax) {
-      window.open('https://github.com/avsarshukla', '_blank', 'noopener,noreferrer');
-      return;
-    }
-  }
-
-  // Flip the phone when clicking anywhere else
+function handlePointerDown() {
   targetRotationY += Math.PI;
   isFlipping = true;
 }
