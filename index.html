@@ -25,6 +25,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     user-select: none;
+    -webkit-user-select: none;
   }
 
   .side-nav {
@@ -38,6 +39,7 @@
   .stage {
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
     perspective: 1600px; z-index: 10;
+    touch-action: none;
   }
   .phone-wrap { transform: scale(var(--s, 1)); }
   .phone {
@@ -45,6 +47,10 @@
     transform-style: preserve-3d;
     transform: rotateY(var(--ry, 0deg));
     cursor: grab;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
   .phone:active { cursor: grabbing; }
   .phone::before {
@@ -135,7 +141,6 @@
     line-height: 1.1;
   }
 
-  /* Pixel widget — now an <a> link to GitHub */
   a.pixel-w {
     display: grid;
     grid-column: span 4;
@@ -257,7 +262,6 @@
   }
   @keyframes pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
 
-  /* ============ MESSAGES MODAL ============ */
   .msg-overlay {
     position: fixed; inset: 0; z-index: 100;
     background: rgba(0,0,0,0.65);
@@ -287,9 +291,7 @@
     padding: 14px 16px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
-  .msg-header h2 {
-    font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: .2px;
-  }
+  .msg-header h2 { font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: .2px; }
   .msg-close {
     width: 28px; height: 28px; border-radius: 50%;
     background: #2c2c2e; border: 0; color: #ffffff;
@@ -304,10 +306,7 @@
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
-  .msg-row label {
-    font-size: 14px; font-weight: 500; color: #8e8e93;
-    flex-shrink: 0;
-  }
+  .msg-row label { font-size: 14px; font-weight: 500; color: #8e8e93; flex-shrink: 0; }
   .msg-row input {
     flex: 1;
     background: transparent; border: 0; outline: 0;
@@ -351,6 +350,7 @@
     .stage {
       position: relative; inset: auto; height: 580px; width: 100%;
       padding: 10px 0;
+      touch-action: none;
     }
     .hint {
       position: relative; bottom: auto; left: auto; transform: none;
@@ -369,7 +369,7 @@
         <div class="screen">
           <div class="island"></div>
           <div class="status">
-            <span>19:58</span>
+            <span id="statusTime">--:--</span>
             <span class="right">
               <span class="bars"><i></i><i></i><i></i><i></i></span>
               <span class="wifi"></span>
@@ -378,13 +378,11 @@
           </div>
 
           <div class="home">
-            <!-- GitHub contribution graph — clickable -->
             <a class="pixel-w" id="pixelW"
                href="https://github.com/avsarshukla"
                target="_blank" rel="noopener"
                title="github.com/avsarshukla"></a>
 
-            <!-- Kolkata Weather Widget -->
             <div class="app-item weather-wrap">
               <div class="weather">
                 <div class="top">
@@ -393,19 +391,18 @@
                 </div>
                 <div>
                   <div class="temp-main">
-                    <h3>31°</h3>
+                    <h3 id="weatherTemp">--°</h3>
                     <span>C</span>
                   </div>
-                  <div class="condition">Mostly Sunny</div>
+                  <div class="condition" id="weatherCondition">Loading…</div>
                 </div>
                 <div class="footer">
-                  <span>H: 33° L: 26°</span>
-                  <span>AQI 42</span>
+                  <span id="weatherHL">H: --° L: --°</span>
+                  <span id="weatherAQI">AQI --</span>
                 </div>
               </div>
             </div>
 
-            <!-- LinkedIn — profile URL -->
             <a class="app-item"
                href="https://www.linkedin.com/in/avsar-shukla/"
                target="_blank" rel="noopener">
@@ -478,7 +475,6 @@
   <h1>Avsar Shukla</h1>
 </nav>
 
-<!-- ============ MESSAGES MODAL ============ -->
 <div class="msg-overlay" id="msgOverlay" hidden>
   <div class="msg-sheet" role="dialog" aria-modal="true" aria-label="New Message">
     <div class="msg-header">
@@ -497,6 +493,84 @@
 </div>
 
 <script>
+  /* ============================================================
+     1. STATUS BAR — current India time, updates every 10 s
+     ============================================================ */
+  (function(){
+    const el = document.getElementById('statusTime');
+    function tick(){
+      el.textContent = new Date().toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    }
+    tick();
+    setInterval(tick, 10000);
+  })();
+
+  /* ============================================================
+     2. KOLKATA WEATHER — live from Open-Meteo (no API key)
+        Refreshes every 10 minutes. Silent-fails to last good values.
+     ============================================================ */
+  (function(){
+    const LAT = 22.5726;
+    const LON = 88.3639;
+
+    const elTemp = document.getElementById('weatherTemp');
+    const elCond = document.getElementById('weatherCondition');
+    const elHL   = document.getElementById('weatherHL');
+    const elAQI  = document.getElementById('weatherAQI');
+
+    // WMO weather code → text
+    const WMO = {
+      0:'Clear', 1:'Mainly Clear', 2:'Partly Cloudy', 3:'Overcast',
+      45:'Fog', 48:'Rime Fog',
+      51:'Light Drizzle', 53:'Drizzle', 55:'Heavy Drizzle',
+      56:'Freezing Drizzle', 57:'Freezing Drizzle',
+      61:'Light Rain', 63:'Rain', 65:'Heavy Rain',
+      66:'Freezing Rain', 67:'Freezing Rain',
+      71:'Light Snow', 73:'Snow', 75:'Heavy Snow', 77:'Snow Grains',
+      80:'Rain Showers', 81:'Rain Showers', 82:'Violent Showers',
+      85:'Snow Showers', 86:'Heavy Snow Showers',
+      95:'Thunderstorm', 96:'Thunderstorm', 99:'Thunderstorm'
+    };
+
+    async function load(){
+      try {
+        const [wRes, aqRes] = await Promise.all([
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
+                `&current=temperature_2m,weather_code` +
+                `&daily=temperature_2m_max,temperature_2m_min` +
+                `&timezone=Asia%2FKolkata`),
+          fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}` +
+                `&current=us_aqi&timezone=Asia%2FKolkata`)
+        ]);
+        if (!wRes.ok || !aqRes.ok) throw new Error('bad response');
+
+        const w = await wRes.json();
+        const a = await aqRes.json();
+
+        const t  = Math.round(w.current.temperature_2m);
+        const hi = Math.round(w.daily.temperature_2m_max[0]);
+        const lo = Math.round(w.daily.temperature_2m_min[0]);
+        const code = w.current.weather_code;
+        const aqi = Math.round(a.current.us_aqi);
+
+        elTemp.textContent = t + '°';
+        elCond.textContent = WMO[code] || 'Clear';
+        elHL.textContent   = `H: ${hi}° L: ${lo}°`;
+        elAQI.textContent  = 'AQI ' + aqi;
+      } catch (_) {
+        // keep last-known (or initial placeholder) values
+      }
+    }
+
+    load();
+    setInterval(load, 10 * 60 * 1000);
+  })();
+
   /* ---------- pixel widget (GitHub contribution graph) ---------- */
   (function(){
     const w = document.getElementById('pixelW');
@@ -544,14 +618,11 @@
     overlay.addEventListener('click', (e)=>{ if(e.target === overlay) close(); });
     window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && !overlay.hidden) close(); });
 
-    function syncSend(){
-      sendBtn.disabled = bodyInput.value.trim().length === 0;
-    }
+    function syncSend(){ sendBtn.disabled = bodyInput.value.trim().length === 0; }
     toInput.addEventListener('input', syncSend);
     bodyInput.addEventListener('input', syncSend);
 
     sendBtn.addEventListener('click', () => {
-      // Message goes nowhere — just clear and close.
       toInput.value = '';
       bodyInput.value = '';
       sendBtn.disabled = true;
@@ -559,7 +630,11 @@
     });
   })();
 
-  /* ---------- 2D scroll / drag rotation ---------- */
+  /* ============================================================
+     3. FLIP ROTATION — desktop (wheel / drag / keys) + mobile (touch)
+        touch-action: none on .phone + .stage in CSS prevents the
+        mobile browser from scrolling instead of dispatching pointermove.
+     ============================================================ */
   const phone = document.getElementById('phone');
   let target = 0, current = 0, snapTimer = null;
 
@@ -568,19 +643,20 @@
     snapTimer = setTimeout(()=>{ target = Math.round(target/180)*180; }, 130);
   }
 
+  // Desktop wheel
   window.addEventListener('wheel', e=>{
-    // don't hijack wheel while a modal is open
     if (!document.getElementById('msgOverlay').hidden) return;
     e.preventDefault();
     target += e.deltaY * 0.35 + e.deltaX * 0.25;
     snapSoon();
   }, {passive:false});
 
+  // Pointer / drag — works for mouse AND touch once touch-action: none is set
   let dragging=false, lastX=0;
   phone.addEventListener('pointerdown', e=>{
-    // don't start a drag when the user grabs a link or button
     if (e.target.closest('a, button, input, textarea')) return;
-    dragging=true; lastX=e.clientX;
+    dragging = true;
+    lastX = e.clientX;
     try { phone.setPointerCapture(e.pointerId); } catch(_) {}
     clearTimeout(snapTimer);
   });
@@ -589,8 +665,10 @@
     target += (e.clientX - lastX) * 0.55;
     lastX = e.clientX;
   });
-  window.addEventListener('pointerup', ()=>{ dragging=false; snapSoon(); });
+  window.addEventListener('pointerup',     ()=>{ dragging=false; snapSoon(); });
+  window.addEventListener('pointercancel', ()=>{ dragging=false; snapSoon(); });
 
+  // Keys
   window.addEventListener('keydown', e=>{
     if(e.key==='ArrowRight') target += 180;
     if(e.key==='ArrowLeft')  target -= 180;
